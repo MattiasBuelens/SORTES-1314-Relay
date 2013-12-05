@@ -1,11 +1,11 @@
 # SDCC paths
 # A) Linux
-LIB = /usr/local/lib
-INCLUDE = /usr/local/share/sdcc/include
+# LIB = /usr/local/lib
+# INCLUDE = /usr/local/share/sdcc/include
 # B) Windows
 #    Do not use spaces in these paths! (set up symbolic links if needed)
-# LIB = C:\SDCC\lib
-# INCLUDE = C:\SDCC\include
+LIB = C:\SDCC\lib
+INCLUDE = C:\SDCC\include
 
 AS = gpasm
 CC = sdcc

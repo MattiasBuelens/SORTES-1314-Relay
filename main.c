@@ -24,7 +24,6 @@
 // Include all headers for any enabled TCPIP Stack functions
 #include "Include/TCPIP_Stack/TCPIP.h"
 #include "Include/TCPIP_Stack/Delay.h"
-#include "Include/TCPIP_Stack/DHCP.h"
 
 // Include own functions
 #include "platform/display.h"
@@ -33,6 +32,9 @@
 
 // Declare AppConfig structure
 APP_CONFIG AppConfig;
+
+static void InitializeBoard(void);
+static void InitAppConfig(void);
 
 /**
  * Low-priority interrupt routine.

@@ -9,9 +9,20 @@
 #include "../platform/led.h"
 
 void led_init(void) {
-	LED0_TRIS = 0; //configure 1st led pin as output (yellow)
-	LED1_TRIS = 0; //configure 2nd led pin as output (red)
-	LED2_TRIS = 0; //configure 3rd led pin as output (red)
+	LED0_TRIS = 0;  //LED0 (yellow)
+	LED1_TRIS = 0;  //LED1 (red)
+	LED2_TRIS = 0;  //LED2 (red)
+	LED3_TRIS = 0;  //LED_LCD1
+	LED4_TRIS = 0;  //LED_LCD2
+	LED5_TRIS = 0;  //LED5=RELAY1
+	LED6_TRIS = 0;  //LED7=RELAY2
+#if (!defined(EXPLORER_16) &&!defined(OLIMEX_MAXI))
+	// Pin multiplexed with a button
+	// on EXPLORER_16 and not used on OLIMEX_MAXI
+	LED7_TRIS = 0;
+#endif
+	LED_PUT(0x00);  // turn off LED0 - LED2
+	RELAY_PUT(0x00); // turn relays off to save power
 }
 
 BOOL led_get(enum led_e led) {

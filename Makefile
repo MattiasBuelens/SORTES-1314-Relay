@@ -20,7 +20,8 @@ OBJECTS=Objects/Announce.o Objects/ARP.o Objects/Delay.o \
    Objects/DHCP.o Objects/DHCPs.o Objects/DNS.o  Objects/ETH97J60.o  \
    Objects/Hashes.o Objects/Helpers.o Objects/ICMP.o Objects/IP.o \
    Objects/LCDBlocking.o Objects/StackTsk.o \
-   Objects/Tick.o Objects/UDP.o
+   Objects/Tick.o Objects/UDP.o \
+   Objects/platform_pic16.o Objects/relay.o
 
 SDCC_HEADERS=$(INCLUDE)/string.h \
    $(INCLUDE)/stdlib.h \
@@ -86,12 +87,16 @@ APP_HEADERS=Include/GenericTypeDefs.h \
    Include/TCPIPConfig.h \
    Include/mib.h
 
-relay : $(OBJECTS) Objects/platform_pic16.o Objects/relay.o
-	$(LD) $(LDFLAGS) Objects/relay.o $(OBJECTS) Objects/platform_pic16.o
+relay : $(OBJECTS) Objects/main.o
+	$(LD) $(LDFLAGS) Objects/main.o $(OBJECTS)
 
-Objects/relay.o : alarm.c $(SDCC_HEADERS) $(SDCC_PIC16_HEADERS) \
+Objects/main.o : main.c $(SDCC_HEADERS) $(SDCC_PIC16_HEADERS) \
    $(APP_HEADERS) $(TCPIP_HEADERS)
-	$(CC) $(CFLAGS) alarm.c
+	$(CC) $(CFLAGS) main.c
+
+Objects/relay.o : relay.c $(SDCC_HEADERS) $(SDCC_PIC16_HEADERS) \
+   $(APP_HEADERS) $(TCPIP_HEADERS)
+	$(CC) $(CFLAGS) relay.c
 
 Objects/platform_pic16.o : platform_pic16.c $(SDCC_HEADERS) $(SDCC_PIC16_HEADERS) \
    $(APP_HEADERS) $(TCPIP_HEADERS)

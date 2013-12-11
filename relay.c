@@ -7,6 +7,8 @@
 // Some macros
 #define LOW(a)     (a & 0xFF)
 #define HIGH(a)    ((a>>8) & 0xFF)
+#define MAX(a,b)   (((a)>(b))?(a):(b))
+#define MIN(a,b)   (((a)<(b))?(a):(b))
 
 // Define processor and compiler
 #define __18F97J60
@@ -26,10 +28,25 @@
 
 #include "relay.h"
 
-NODE_INFO serverInfo;
+// Fragment buffers
+BYTE serverFragment1[RELAY_FRAGMENT_SIZE];
+BYTE serverFragment2[RELAY_FRAGMENT_SIZE];
+BYTE serverFragment3[RELAY_FRAGMENT_SIZE];
+BYTE serverFragment4[RELAY_FRAGMENT_SIZE];
+BYTE clientFragment1[RELAY_FRAGMENT_SIZE];
+BYTE clientFragment2[RELAY_FRAGMENT_SIZE];
+BYTE clientFragment3[RELAY_FRAGMENT_SIZE];
+BYTE clientFragment4[RELAY_FRAGMENT_SIZE];
 
-UDP_SOCKET serverSocket;
-UDP_SOCKET clientSocket;
+// Packet buffers
+RELAY_PACKET serverPacket = { { 0, serverFragment1 }, { 0, serverFragment2 }, {
+		0, serverFragment3 }, { 0, serverFragment4 } };
+RELAY_PACKET clientPacket = { { 0, clientFragment1 }, { 0, clientFragment2 }, {
+		0, clientFragment3 }, { 0, clientFragment4 } };
+
+// Connections
+NODE_INFO serverInfo;
+UDP_SOCKET serverSocket, clientSocket;
 
 void RelayInit(void) {
 	// Initialize server node info
@@ -63,62 +80,35 @@ void RelayTask(void) {
 }
 
 void RelayClientRequest(void) {
-	BYTE request[DHCP_PACKET_MAX_SIZE];
-	BOOTP_HEADER * pheader;
-	WORD nBytes;
-
-	nBytes = UDPIsGetReady(clientSocket);
-	if (nBytes == 0)
-		return;
+	BOOTP_HEADER *pheader;
 
 	// Read client request
-	UDPGetArray(request, nBytes);
-	UDPDiscard();
+	if (!RelayPacketGet(clientSocket, &clientPacket)) {
+		// Nothing to read or too large
+		return;
+	}
 
 	// Set relay agent IP
-	pheader = (BOOTP_HEADER *) request;
+	pheader = (BOOTP_HEADER *) clientPacket.fragment1;
 	pheader->RelayAgentIP.Val = AppConfig.MyIPAddr.Val;
 
 	// Resolve the DHCP server if needed
 	// If not yet resolved, the socket will just do a MAC broadcast
 	RelayResolveServer();
 
-	// Relay to server
-	if (UDPIsPutReady(serverSocket)) {
-		// Put request
-		UDPPutArray(request, nBytes);
-		// Add zero padding to ensure compatibility with old BOOTP relays that
-		// discard small packets (<300 UDP octets)
-		while (UDPTxCount < 300u)
-			UDPPut(0);
-		// Send
-		UDPFlush();
-	}
+	// Relay client packet to server
+	RelayPacketPut(serverSocket, &clientPacket);
 }
 
 void RelayServerReply(void) {
-	BYTE reply[DHCP_PACKET_MAX_SIZE];
-	WORD nBytes;
-
-	nBytes = UDPIsGetReady(serverSocket);
-	if (nBytes == 0)
-		return;
-
 	// Read server reply
-	UDPGetArray(reply, nBytes);
-	UDPDiscard();
+	if (!RelayPacketGet(serverSocket, &serverPacket)) {
+		// Nothing to read or too large
+		return;
+	}
 
 	// Broadcast to client
-	if (UDPIsPutReady(clientSocket)) {
-		// Put reply
-		UDPPutArray(reply, nBytes);
-		// Add zero padding to ensure compatibility with old BOOTP relays that
-		// discard small packets (<300 UDP octets)
-		while (UDPTxCount < 300u)
-			UDPPut(0);
-		// Send
-		UDPFlush();
-	}
+	RelayPacketPut(clientSocket, &serverPacket);
 }
 
 BOOL RelayResolveServer(void) {
@@ -141,6 +131,66 @@ BOOL RelayResolveServer(void) {
 		UDPClose(serverSocket);
 		serverSocket = UDPOpen(DHCP_CLIENT_PORT, &serverInfo, DHCP_SERVER_PORT);
 	}
+	return TRUE;
+}
+
+void RelayFragmentGet(RELAY_FRAGMENT *fragment, WORD *remainingSize) {
+	// Read at most RELAY_FRAGMENT_SIZE bytes into fragment
+	BYTE fragmentSize = MIN(*remainingSize, RELAY_FRAGMENT_SIZE);
+	fragment->size = fragmentSize;
+	// Check if anything to read
+	if (fragmentSize == 0) {
+		return;
+	}
+	// Read fragment
+	UDPGetArray(fragment->contents, fragmentSize);
+	// Update remaining packet size
+	*remainingSize -= fragmentSize;
+}
+
+BOOL RelayPacketGet(UDP_SOCKET socket, RELAY_PACKET *packet) {
+	WORD packetSize;
+
+	// Get packet size to read
+	packetSize = UDPIsGetReady(socket);
+	if (packetSize == 0) {
+		// Nothing to read
+		return FALSE;
+	} else if (packetSize > RELAY_PACKET_SIZE) {
+		// Packet too large
+		UDPDiscard();
+		return FALSE;
+	}
+
+	// Read into fragments
+	RelayFragmentGet(&(packet->fragment1), &packetSize);
+	RelayFragmentGet(&(packet->fragment2), &packetSize);
+	RelayFragmentGet(&(packet->fragment3), &packetSize);
+	RelayFragmentGet(&(packet->fragment4), &packetSize);
+
+	return TRUE;
+}
+
+BOOL RelayPacketPut(UDP_SOCKET socket, RELAY_PACKET *packet) {
+	if (!UDPIsPutReady(socket)) {
+		// Put not ready
+		return FALSE;
+	}
+
+	// Read from fragments
+	UDPPutArray(packet->fragment1.contents, packet->fragment1.size);
+	UDPPutArray(packet->fragment2.contents, packet->fragment2.size);
+	UDPPutArray(packet->fragment3.contents, packet->fragment3.size);
+	UDPPutArray(packet->fragment4.contents, packet->fragment4.size);
+
+	// Add zero padding to ensure compatibility with old BOOTP relays that
+	// discard small packets (<300 UDP octets)
+	while (UDPTxCount < 300u)
+		UDPPut(0);
+
+	// Send
+	UDPFlush();
+
 	return TRUE;
 }
 

@@ -7,6 +7,8 @@
 #ifndef RELAY_H_
 #define RELAY_H_
 
+#include "Include/GenericTypeDefs.h"
+
 #include "Include/TCPIP_Stack/TCPIP.h"
 #include "Include/TCPIP_Stack/DHCP.h"
 
@@ -24,10 +26,33 @@
 #define DHCP_SERVER_MAC5 0xFF
 #define DHCP_SERVER_MAC6 0xFF
 
-#define DHCP_PACKET_MAX_SIZE 576
-#define BOOTP_HEADER_SIZE 44
-#define DHCP_PACKET_MAX_DATA 532 // (DHCP_PACKET_MAX_SIZE - BOOTP_HEADER_SIZE)void RelayInit(void);
+// Size of one packet fragment
+// Arrays larger than 256 bytes are not supported,
+// so fragmentation is required
+#define RELAY_FRAGMENT_SIZE 128
+
+// Packet fragment
+typedef struct {
+	BYTE size;
+	BYTE *contents;
+} RELAY_FRAGMENT;
+
+// Size of one packet
+#define RELAY_PACKET_SIZE (4 * RELAY_FRAGMENT_SIZE)
+
+// Packet containing 4 fragments
+typedef struct {
+	RELAY_FRAGMENT fragment1;
+	RELAY_FRAGMENT fragment2;
+	RELAY_FRAGMENT fragment3;
+	RELAY_FRAGMENT fragment4;
+} RELAY_PACKET;
+
+void RelayInit(void);
 void RelayTask(void);
+
+BOOL RelayPacketGet(UDP_SOCKET socket, RELAY_PACKET *packet);
+BOOL RelayPacketPut(UDP_SOCKET socket, RELAY_PACKET *packet);
 
 void RelayClientRequest(void);
 void RelayServerReply(void);

@@ -198,7 +198,7 @@ SetLEDConfig(0x3870);
 	// Set the PHY into the proper duplex state
 #if defined(FULL_DUPLEX)
 	WritePHYReg(PHCON1, PHCON1_PDPXMD);
-//        DisplayString(16,"FULL_DUPLEX");while (1);
+        /*DisplayString(16,"FULL_DUPLEX");*/while (1);
 
 #else
 	WritePHYReg(PHCON1, 0x0000);
@@ -207,7 +207,7 @@ SetLEDConfig(0x3870);
 	// Enable packet reception
     ECON1bits.RXEN = 1;
 
-//    DisplayString(16,"ETHinit");while (1);
+    /*DisplayString(16,"ETHinit");*/while (1);
 
 }//end MACInit
 
@@ -451,8 +451,8 @@ BOOL MACGetHeader(MAC_ADDR *remote, BYTE* type)
 	   header.StatusVector.bits.ByteCount > 1518u ||
 	   !header.StatusVector.bits.ReceiveOk)
 	{
-	  //DisplayString(0,"error reading hdr");while(1);//////////////////////////ML
-	  Reset(); //We shouldn't get here anyway
+	  /*DisplayString(0,"error reading hdr");*/while(1);//////////////////////////ML
+	  // Reset(); //We shouldn't get here anyway
 	}
 
 	// Save the location where the hardware will write the next packet to

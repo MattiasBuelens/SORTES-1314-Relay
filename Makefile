@@ -9,9 +9,9 @@ INCLUDE = C:\SDCC\include
 
 AS = gpasm
 CC = sdcc
-CFLAGS= -c -mpic16 -p18f97j60  -o$@ 
+CFLAGS= -c -mpic16 -p18f97j60 -o$@ 
 LD = sdcc
-LDFLAGS= -mpic16 -p18f97j60 -L/pic16 -llibio18f97j60.lib \
+LDFLAGS= -mpic16 -p18f97j60 -L$(LIB)/pic16 -llibio18f97j60.lib \
          -llibdev18f97j60.lib -llibc18f.lib
 AR = ar
 RM = rm
@@ -21,7 +21,7 @@ OBJECTS=Objects/Announce.o Objects/ARP.o Objects/Delay.o \
    Objects/Hashes.o Objects/Helpers.o Objects/ICMP.o Objects/IP.o \
    Objects/LCDBlocking.o Objects/StackTsk.o \
    Objects/Tick.o Objects/UDP.o \
-   Objects/platform_pic16.o Objects/relay.o
+   Objects/main.o Objects/relay.o Objects/platform_pic16.o
 
 SDCC_HEADERS=$(INCLUDE)/string.h \
    $(INCLUDE)/stdlib.h \
@@ -87,8 +87,8 @@ APP_HEADERS=Include/GenericTypeDefs.h \
    Include/TCPIPConfig.h \
    Include/mib.h
 
-relay : $(OBJECTS) Objects/main.o
-	$(LD) $(LDFLAGS) Objects/main.o $(OBJECTS)
+relay : $(OBJECTS)
+	$(LD) $(LDFLAGS) $(OBJECTS)
 
 Objects/main.o : main.c $(SDCC_HEADERS) $(SDCC_PIC16_HEADERS) \
    $(APP_HEADERS) $(TCPIP_HEADERS)

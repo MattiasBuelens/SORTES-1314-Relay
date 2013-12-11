@@ -94,21 +94,22 @@ int main(void)
 
 	// LCD
 	display_init();
+	DelayMs(100);
 
-    // Initialize Timer0, and low priority interrupts, used as clock.
-    TickInit();
+	// Initialize Timer0, and low priority interrupts, used as clock.
+	TickInit();
 
-    // Initialize Stack and application related variables in AppConfig.
-    InitAppConfig();
+	// Initialize Stack and application related variables in AppConfig.
+	InitAppConfig();
 
-    // Initialize core stack layers (MAC, ARP, TCP, UDP) and
-    // application modules (HTTP, SNMP, etc.)
-    StackInit();
+	// Initialize core stack layers (MAC, ARP, TCP, UDP) and
+	// application modules (HTTP, SNMP, etc.)
+	StackInit();
 
-    // Initialize relay
-    RelayInit();
+	// Initialize relay
+	RelayInit();
 
-    // Cooperative multitasking loop
+	// Cooperative multitasking loop
 	while (TRUE) {
 		// This task performs normal stack task including checking
 		// for incoming packet, type of packet and calling
@@ -183,7 +184,7 @@ static void InitializeBoard(void) {
  * Note:            None
  ********************************************************************/
 static void InitAppConfig(void) {
-	AppConfig.Flags.bIsDHCPEnabled = TRUE;
+	AppConfig.Flags.bIsDHCPEnabled = FALSE; // was TRUE
 	AppConfig.Flags.bInConfigMode = TRUE;
 
 	// ML using sdcc (MPLAB has a trick to generate serial numbers)
@@ -197,22 +198,22 @@ static void InitAppConfig(void) {
 
 	// ML if you want to change, see TCPIPConfig.h
 	AppConfig.MyIPAddr.Val = MY_DEFAULT_IP_ADDR_BYTE1 |
-		MY_DEFAULT_IP_ADDR_BYTE2 << 8ul | MY_DEFAULT_IP_ADDR_BYTE3 << 16ul |
-		MY_DEFAULT_IP_ADDR_BYTE4 << 24ul;
+	MY_DEFAULT_IP_ADDR_BYTE2 << 8ul | MY_DEFAULT_IP_ADDR_BYTE3 << 16ul |
+	MY_DEFAULT_IP_ADDR_BYTE4 << 24ul;
 	AppConfig.DefaultIPAddr.Val = AppConfig.MyIPAddr.Val;
 	AppConfig.MyMask.Val = MY_DEFAULT_MASK_BYTE1 |
-		MY_DEFAULT_MASK_BYTE2 << 8ul | MY_DEFAULT_MASK_BYTE3 << 16ul |
-		MY_DEFAULT_MASK_BYTE4 << 24ul;
+	MY_DEFAULT_MASK_BYTE2 << 8ul | MY_DEFAULT_MASK_BYTE3 << 16ul |
+	MY_DEFAULT_MASK_BYTE4 << 24ul;
 	AppConfig.DefaultMask.Val = AppConfig.MyMask.Val;
 	AppConfig.MyGateway.Val = MY_DEFAULT_GATE_BYTE1 |
-		MY_DEFAULT_GATE_BYTE2 << 8ul | MY_DEFAULT_GATE_BYTE3 << 16ul |
-		MY_DEFAULT_GATE_BYTE4 << 24ul;
+	MY_DEFAULT_GATE_BYTE2 << 8ul | MY_DEFAULT_GATE_BYTE3 << 16ul |
+	MY_DEFAULT_GATE_BYTE4 << 24ul;
 	AppConfig.PrimaryDNSServer.Val = MY_DEFAULT_PRIMARY_DNS_BYTE1 |
-		MY_DEFAULT_PRIMARY_DNS_BYTE2 << 8ul |
-		MY_DEFAULT_PRIMARY_DNS_BYTE3 << 16ul |
-		MY_DEFAULT_PRIMARY_DNS_BYTE4 << 24ul;
+	MY_DEFAULT_PRIMARY_DNS_BYTE2 << 8ul |
+	MY_DEFAULT_PRIMARY_DNS_BYTE3 << 16ul |
+	MY_DEFAULT_PRIMARY_DNS_BYTE4 << 24ul;
 	AppConfig.SecondaryDNSServer.Val = MY_DEFAULT_SECONDARY_DNS_BYTE1 |
-		MY_DEFAULT_SECONDARY_DNS_BYTE2 << 8ul |
-		MY_DEFAULT_SECONDARY_DNS_BYTE3 << 16ul |
-		MY_DEFAULT_SECONDARY_DNS_BYTE4 << 24ul;
+	MY_DEFAULT_SECONDARY_DNS_BYTE2 << 8ul |
+	MY_DEFAULT_SECONDARY_DNS_BYTE3 << 16ul |
+	MY_DEFAULT_SECONDARY_DNS_BYTE4 << 24ul;
 }

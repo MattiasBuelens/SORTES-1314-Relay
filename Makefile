@@ -16,12 +16,12 @@ LDFLAGS= -mpic16 -p18f97j60 -L$(LIB)/pic16 -llibio18f97j60.lib \
 AR = ar
 RM = rm
 
-OBJECTS=Objects/Announce.o Objects/ARP.o Objects/Delay.o \
+OBJECTS=Objects/main.o Objects/Announce.o Objects/ARP.o Objects/Delay.o \
    Objects/DHCP.o Objects/DHCPs.o Objects/DNS.o  Objects/ETH97J60.o  \
    Objects/Hashes.o Objects/Helpers.o Objects/ICMP.o Objects/IP.o \
    Objects/LCDBlocking.o Objects/StackTsk.o \
    Objects/Tick.o Objects/UDP.o \
-   Objects/main.o Objects/relay.o Objects/platform_pic16.o
+   Objects/relay.o Objects/platform_pic16.o
 
 SDCC_HEADERS=$(INCLUDE)/string.h \
    $(INCLUDE)/stdlib.h \

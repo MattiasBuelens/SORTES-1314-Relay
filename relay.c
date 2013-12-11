@@ -49,6 +49,10 @@ NODE_INFO serverInfo;
 UDP_SOCKET serverSocket, clientSocket;
 
 void RelayInit(void) {
+	// Write something on the screen
+	display_string(0, 0, "DHCP Relay");
+	DelayMs(1000);
+
 	// Initialize server node info
 	serverInfo.IPAddr.Val = DHCP_SERVER_IP1 |
 	DHCP_SERVER_IP2 << 8ul | DHCP_SERVER_IP3 << 16ul |
@@ -69,9 +73,6 @@ void RelayInit(void) {
 
 	// Resolve server
 	RelayResolveServer();
-
-	// Write something on the screen
-	display_string(0, 0, "DHCP Relay");
 }
 
 void RelayTask(void) {
@@ -89,7 +90,7 @@ void RelayClientRequest(void) {
 	}
 
 	// Set relay agent IP
-	pheader = (BOOTP_HEADER *) clientPacket.fragment1;
+	pheader = (BOOTP_HEADER *) &(clientPacket.fragment1);
 	pheader->RelayAgentIP.Val = AppConfig.MyIPAddr.Val;
 
 	// Resolve the DHCP server if needed
@@ -98,6 +99,9 @@ void RelayClientRequest(void) {
 
 	// Relay client packet to server
 	RelayPacketPut(serverSocket, &clientPacket);
+
+	// TODO DEBUG
+	display_string(1, 0, "Client2Server");
 }
 
 void RelayServerReply(void) {
@@ -109,6 +113,9 @@ void RelayServerReply(void) {
 
 	// Broadcast to client
 	RelayPacketPut(clientSocket, &serverPacket);
+
+	// TODO DEBUG
+	display_string(1, 0, "Server2Client");
 }
 
 BOOL RelayResolveServer(void) {
@@ -158,7 +165,6 @@ BOOL RelayPacketGet(UDP_SOCKET socket, RELAY_PACKET *packet) {
 		return FALSE;
 	} else if (packetSize > RELAY_PACKET_SIZE) {
 		// Packet too large
-		UDPDiscard();
 		return FALSE;
 	}
 

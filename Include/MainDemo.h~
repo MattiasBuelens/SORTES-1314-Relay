@@ -50,7 +50,6 @@
  ********************************************************************/
 #ifndef _MAINDEMO_H
 #define _MAINDEMO_H
-#include "GenericTypeDefs.h"
 
 #define BAUD_RATE       (19200)		// bps
 
@@ -77,10 +76,8 @@ void PingDemo(void);
 
 // An actual function defined in MainDemo.c for displaying the current IP 
 // address on the UART and/or LCD.
-#if defined(__SDCC__)
-    void DisplayIPValue(DWORD IPVal);
-#else
-    void DisplayIPValue(IP_ADDR IPVal);
-#endif
+//MLvoid DisplayIPValue(IP_ADDR IPVal);
+void DisplayIPValue(IP_ADDR * IPVal);
+
 
 #endif // _MAINDEMO_H

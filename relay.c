@@ -51,7 +51,7 @@ UDP_SOCKET serverSocket, clientSocket;
 void RelayInit(void) {
 	// Write something on the screen
 	display_string(0, 0, "DHCP Relay");
-	DelayMs(1000);
+	DelayMs(100);
 
 	// Initialize server node info
 	serverInfo.IPAddr.Val = DHCP_SERVER_IP1 |
@@ -82,6 +82,7 @@ void RelayTask(void) {
 
 void RelayClientRequest(void) {
 	BOOTP_HEADER *pheader;
+	char buffer[32];
 
 	// Read client request
 	if (!RelayPacketGet(clientSocket, &clientPacket)) {
@@ -90,7 +91,7 @@ void RelayClientRequest(void) {
 	}
 
 	// Set relay agent IP
-	pheader = (BOOTP_HEADER *) &(clientPacket.fragment1);
+	pheader = (BOOTP_HEADER *) (clientPacket.fragment1.contents);
 	pheader->RelayAgentIP.Val = AppConfig.MyIPAddr.Val;
 
 	// Resolve the DHCP server if needed
@@ -209,10 +210,9 @@ BOOL MACAddrEquals(const MAC_ADDR *mac1, const MAC_ADDR *mac2) {
 	return TRUE;
 }
 
-BOOL MACAddrCopy(MAC_ADDR *dest, const MAC_ADDR *src) {
+void MACAddrCopy(MAC_ADDR *dest, const MAC_ADDR *src) {
 	int i = 0;
 	for (i = 0; i < 6; i++) {
 		dest->v[i] = src->v[i];
 	}
-	return TRUE;
 }

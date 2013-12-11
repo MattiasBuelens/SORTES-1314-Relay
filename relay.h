@@ -60,6 +60,6 @@ void RelayServerReply(void);
 BOOL RelayResolveServer(void);
 
 BOOL MACAddrEquals(const MAC_ADDR *mac1, const MAC_ADDR *mac2);
-BOOL MACAddrCopy(MAC_ADDR *dest, const MAC_ADDR *src);
+void MACAddrCopy(MAC_ADDR *dest, const MAC_ADDR *src);
 
 #endif /* RELAY_H_ */

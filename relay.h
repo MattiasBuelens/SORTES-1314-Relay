@@ -51,13 +51,14 @@ typedef struct {
 void RelayInit(void);
 void RelayTask(void);
 
-BOOL RelayPacketGet(UDP_SOCKET socket, RELAY_PACKET *packet);
-BOOL RelayPacketPut(UDP_SOCKET socket, RELAY_PACKET *packet);
-
 void RelayClientRequest(void);
 void RelayServerReply(void);
 
 BOOL RelayResolveServer(void);
+void RelayCreateSockets(void);
+
+BOOL RelayPacketGet(UDP_SOCKET socket, RELAY_PACKET *packet);
+BOOL RelayPacketPut(UDP_SOCKET socket, RELAY_PACKET *packet);
 
 BOOL MACAddrEquals(const MAC_ADDR *mac1, const MAC_ADDR *mac2);
 void MACAddrCopy(MAC_ADDR *dest, const MAC_ADDR *src);

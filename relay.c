@@ -48,8 +48,6 @@ RELAY_PACKET clientPacket = { { 0, clientFragment1 }, { 0, clientFragment2 }, {
 NODE_INFO serverInfo;
 UDP_SOCKET serverSocket = -1, clientSocket = -1;
 
-void RelayCreateSockets(void);
-
 void RelayInit(void) {
 	// Write something on the screen
 	display_string(0, 0, "DHCP Relay");
@@ -75,11 +73,11 @@ void RelayInit(void) {
 }
 
 void RelayCreateSockets(void) {
-	// Socket to DHCP server
+	// Unicast socket to DHCP server
 	if (serverSocket > 0)
 		UDPClose(serverSocket);
 	serverSocket = UDPOpen(DHCP_SERVER_PORT, &serverInfo, DHCP_SERVER_PORT);
-	// Socket to clients
+	// Broadcast socket to clients
 	if (clientSocket > 0)
 		UDPClose(clientSocket);
 	clientSocket = UDPOpen(DHCP_SERVER_PORT, NULL, DHCP_CLIENT_PORT);
@@ -109,12 +107,14 @@ void RelayClientRequest(void) {
 	// If not yet resolved, the socket will just do a MAC broadcast
 	RelayResolveServer();
 
-	// Relay client packet to server
+	// Sockets need to be recreated before put
+	// since UDP changes remote node from broadcast to unicast
 	RelayCreateSockets();
+	// Relay client packet to server
 	RelayPacketPut(serverSocket, &clientPacket);
 
-	// TODO DEBUG
-	display_string(1, 0, "Client2Server");
+	// Log on display
+	display_string(1, 0, "Client > Server");
 }
 
 void RelayServerReply(void) {
@@ -130,12 +130,14 @@ void RelayServerReply(void) {
 	// Increment hop count
 	pheader->Hops++;
 
-	// Broadcast to client
+	// Sockets need to be recreated before put
+	// since UDP changes remote node from broadcast to unicast
 	RelayCreateSockets();
+	// Broadcast to client
 	RelayPacketPut(clientSocket, &serverPacket);
 
-	// TODO DEBUG
-	display_string(1, 0, "Server2Client");
+	// Log on display
+	display_string(1, 0, "Server > Client");
 }
 
 BOOL RelayResolveServer(void) {
@@ -154,10 +156,6 @@ BOOL RelayResolveServer(void) {
 	if (!MACAddrEquals(&serverMAC, &(serverInfo.MACAddr))) {
 		// Store new MAC
 		MACAddrCopy(&(serverInfo.MACAddr), &serverMAC);
-		// Re-create socket with new MAC
-		// TODO Already done before each put, right?
-		//UDPClose(serverSocket);
-		//serverSocket = UDPOpen(DHCP_CLIENT_PORT, &serverInfo, DHCP_SERVER_PORT);
 	}
 	return TRUE;
 }

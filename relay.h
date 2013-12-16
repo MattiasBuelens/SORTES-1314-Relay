@@ -12,11 +12,11 @@
 #include "Include/TCPIP_Stack/TCPIP.h"
 #include "Include/TCPIP_Stack/DHCP.h"
 
-// DHCP server IP: 192.168.97.1
+// DHCP server IP: 192.168.0.42
 #define DHCP_SERVER_IP1 (192ul)
 #define DHCP_SERVER_IP2 (168ul)
-#define DHCP_SERVER_IP3 (97ul)
-#define DHCP_SERVER_IP4 (1ul)
+#define DHCP_SERVER_IP3 (0ul)
+#define DHCP_SERVER_IP4 (42ul)
 
 // DHCP server MAC (broadcast by default)
 #define DHCP_SERVER_MAC1 0xFF

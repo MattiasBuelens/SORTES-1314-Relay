@@ -1,7 +1,7 @@
 /*
  * relay.h
  *
- * DHCP relay state machine
+ * DHCP relay
  */
 
 #ifndef RELAY_H_

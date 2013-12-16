@@ -1,7 +1,7 @@
 /*
  * relay.c
  *
- * DHCP relay state machine
+ * DHCP relay
  */
 
 // Some macros

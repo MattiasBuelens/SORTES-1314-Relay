@@ -46,7 +46,9 @@ RELAY_PACKET clientPacket = { { 0, clientFragment1 }, { 0, clientFragment2 }, {
 
 // Connections
 NODE_INFO serverInfo;
-UDP_SOCKET serverSocket, clientSocket;
+UDP_SOCKET serverSocket = -1, clientSocket = -1;
+
+void RelayCreateSockets(void);
 
 void RelayInit(void) {
 	// Write something on the screen
@@ -66,13 +68,21 @@ void RelayInit(void) {
 	serverInfo.MACAddr.v[5] = DHCP_SERVER_MAC6;
 
 	// Initialize sockets
-	// Socket to DHCP server
-	serverSocket = UDPOpen(DHCP_CLIENT_PORT, &serverInfo, DHCP_SERVER_PORT);
-	// Socket to clients
-	clientSocket = UDPOpen(DHCP_SERVER_PORT, NULL, DHCP_CLIENT_PORT);
+	RelayCreateSockets();
 
 	// Resolve server
 	RelayResolveServer();
+}
+
+void RelayCreateSockets(void) {
+	// Socket to DHCP server
+	if (serverSocket > 0)
+		UDPClose(serverSocket);
+	serverSocket = UDPOpen(DHCP_SERVER_PORT, &serverInfo, DHCP_SERVER_PORT);
+	// Socket to clients
+	if (clientSocket > 0)
+		UDPClose(clientSocket);
+	clientSocket = UDPOpen(DHCP_SERVER_PORT, NULL, DHCP_CLIENT_PORT);
 }
 
 void RelayTask(void) {
@@ -82,7 +92,6 @@ void RelayTask(void) {
 
 void RelayClientRequest(void) {
 	BOOTP_HEADER *pheader;
-	char buffer[32];
 
 	// Read client request
 	if (!RelayPacketGet(clientSocket, &clientPacket)) {
@@ -90,8 +99,10 @@ void RelayClientRequest(void) {
 		return;
 	}
 
-	// Set relay agent IP
 	pheader = (BOOTP_HEADER *) (clientPacket.fragment1.contents);
+	// Increment hop count
+	pheader->Hops++;
+	// Set relay agent IP
 	pheader->RelayAgentIP.Val = AppConfig.MyIPAddr.Val;
 
 	// Resolve the DHCP server if needed
@@ -99,6 +110,7 @@ void RelayClientRequest(void) {
 	RelayResolveServer();
 
 	// Relay client packet to server
+	RelayCreateSockets();
 	RelayPacketPut(serverSocket, &clientPacket);
 
 	// TODO DEBUG
@@ -106,13 +118,20 @@ void RelayClientRequest(void) {
 }
 
 void RelayServerReply(void) {
+	BOOTP_HEADER *pheader;
+
 	// Read server reply
 	if (!RelayPacketGet(serverSocket, &serverPacket)) {
 		// Nothing to read or too large
 		return;
 	}
 
+	pheader = (BOOTP_HEADER *) (serverPacket.fragment1.contents);
+	// Increment hop count
+	pheader->Hops++;
+
 	// Broadcast to client
+	RelayCreateSockets();
 	RelayPacketPut(clientSocket, &serverPacket);
 
 	// TODO DEBUG
@@ -136,8 +155,9 @@ BOOL RelayResolveServer(void) {
 		// Store new MAC
 		MACAddrCopy(&(serverInfo.MACAddr), &serverMAC);
 		// Re-create socket with new MAC
-		UDPClose(serverSocket);
-		serverSocket = UDPOpen(DHCP_CLIENT_PORT, &serverInfo, DHCP_SERVER_PORT);
+		// TODO Already done before each put, right?
+		//UDPClose(serverSocket);
+		//serverSocket = UDPOpen(DHCP_CLIENT_PORT, &serverInfo, DHCP_SERVER_PORT);
 	}
 	return TRUE;
 }
